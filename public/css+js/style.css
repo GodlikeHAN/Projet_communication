@@ -1,0 +1,250 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto Light", sans-serif;
+}
+
+body {
+    background-color:#FFEEFB;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #EDE0C9;
+    position: relative;
+    margin-bottom: 10px;
+}
+.logo {
+    height: 80px;
+    width: auto;
+    position: absolute;
+    left: 10px;
+    z-index: 1;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+.profile-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.profile-dropdown:hover .dropdown-content {
+    display: block;
+}
+.profile-info {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.username {
+    font-weight: bold;
+}
+.bouton-rose {
+    padding: 5px;
+    cursor: pointer;
+    background-color: pink;
+    border: none;
+    height: 29px;
+    overflow: hidden;
+    min-width: 150px;
+    color: black;
+    border-radius: 10px;
+
+}
+
+.profile-pic-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.profile-pic-upload img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #ffc107;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.profile-pic-upload span {
+    color: #007bff;
+    cursor: pointer;
+}
+.profile-pic {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.popup .form-container {
+    display: none;
+}
+
+.popup .form-container.active {
+    display: block;
+}
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+.popup {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.popup h2 {
+    margin: 0 0 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Formulaire */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+label {
+    margin: 10px 0 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+/* Champs de saisie */
+input, select, textarea {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s ease;
+    resize: vertical; /* Autorise le redimensionnement vertical pour les textarea */
+}
+
+.clear-button {
+    position: absolute;
+    right: 10px; /* Place la poubelle à droite */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 18px;
+    cursor: pointer;
+    display: none; /* Par défaut, le bouton est caché */
+}
+
+.popup .tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.popup .tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: color 0.3s, border-bottom 0.3s;
+}
+
+.popup .tab.active {
+    color: #333;
+    border-bottom: 3px solid #b8ad9a;
+}
+
+.popup input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.popup button, #bouton-envoyer {
+    background: #EDE0C9;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup .error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.popup button:hover {
+    background: #b8ad9a;
+}
+
+.popup .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+.form-width {
+    width: 95%;
+}
