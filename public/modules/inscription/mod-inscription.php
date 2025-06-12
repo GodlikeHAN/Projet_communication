@@ -1,5 +1,5 @@
 <?php
-require_once '../connexionBD/connexionBD.php';
+require_once 'modules/connexionBD/connexionBD.php';
 
 class InscriptionModel extends ConnexionBD
 {
@@ -13,17 +13,15 @@ class InscriptionModel extends ConnexionBD
 //        }
     }
 
-    public function registerUser($nom,$prenom,$pseudo, $email, $passwordHash,$ville,$photo)
+    public function registerUser($nom,$prenom,$pseudo, $email, $passwordHash)
     {
 //        if ($this->checkCSRFToken()) {
-        $stmt = self::$bdd->prepare("INSERT INTO Utilisateur (nom,prenom,pseudo, email, passw_hash,ville,photo) VALUES (:nom,:prenom,:pseudo, :email, :passw_hash,:ville,:photo)");
+        $stmt = self::$bdd->prepare("INSERT INTO Utilisateur (nom,prenom,pseudo, email, passw_hash) VALUES (:nom,:prenom,:pseudo, :email, :passw_hash)");
         $stmt->bindParam(':nom', $nom);
         $stmt->bindParam(':prenom', $prenom);
         $stmt->bindParam(':pseudo', $pseudo);
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':passw_hash', $passwordHash);
-        $stmt->bindParam(':ville', $ville);
-        $stmt->bindParam(':photo', $photo);
         $stmt->execute();
         return self::$bdd -> lastInsertId();
 //        }

@@ -43,14 +43,8 @@ class ConnexionView {
                         <input type="text" name="prenom" placeholder="Prenom">
                         <input type="text" name="pseudo" placeholder="Pseudo">
                         <input type="email" name="email" placeholder="Email">
-                        <input type="text" name="ville" placeholder="Ville">
                         <input type="password" name="password" placeholder="Mot de passe">
                         <input type="password" name="confirm_password" placeholder="Confirmer mot de passe">
-                        <select name="role" id="role">
-                            <option value="proprio">Propriétaire d'animal</option>
-                            <option value="petsitter">Petsitter</option>
-                        </select>
-                        <input type="file" name="photo" placeholder="Photo">
                         <button type="submit">S'inscrire</button>
                     </form>
                 </div>

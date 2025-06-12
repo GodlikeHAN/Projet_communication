@@ -24,6 +24,11 @@ if (isset($_GET['module'])) {
             $controller = new ConnexionController();
             $controller->handle();
             break;
+        case 'deconnexion':
+            include_once "modules/deconnexion/cont-deconnexion.php";
+            $controller = new DeconnexionController();
+            $controller->handle();
+            break;
     }
 }
 function displayMessage($message) {
