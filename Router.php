@@ -1,7 +1,9 @@
 <?php
 
-require_once('Controller/UserController.php'); //  UserController
-require_once('Database/Database.php'); //  Database 
+require_once('Controller/UserController.php');
+require_once('Controller/HomeController.php');
+require_once('Controller/SensorController.php');
+require_once('Database/Database.php');
 
 class Router
 {
@@ -27,6 +29,7 @@ class Router
     public function dispatch($uri) {
         $uri = str_replace("?", "", $uri);
         $uri = str_replace("/Projet_communication", "", $uri);
+
         if (array_key_exists($uri, $this->routes)) {
             $controllerName = $this->routes[$uri]['controller'];
             $actionName = $this->routes[$uri]['action'];
@@ -46,8 +49,9 @@ class Router
             // Appeler l'action avec la base de données
             $controller->$actionName(new Database());
         } else {
-            header('Location: ./');
-            exit();
+            // Route par défaut - redirection vers l'accueil
+            $controller = new HomeController();
+            $controller->home(new Database());
         }
     }
 }
