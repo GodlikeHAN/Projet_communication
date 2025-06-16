@@ -105,9 +105,6 @@
                 <h2><i class="fas fa-chart-line"></i> Historique des Données</h2>
             </div>
             <div class="card-content">
-                <div class="chart-container">
-                    <canvas id="proximity-chart"></canvas>
-                </div>
                 <div class="data-table">
                     <table id="sensor-data-table">
                         <thead>

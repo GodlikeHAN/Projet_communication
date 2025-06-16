@@ -43,53 +43,87 @@ class SensorController {
     /**
      * API pour enregistrer les données du capteur de proximité
      */
-    public function recordProximityData($database) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['Error' => 'Méthode non autorisée']);
-            return;
-        }
+    // public function recordProximityData($database) {
+    //     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    //         http_response_code(405);
+    //         echo json_encode(['Error' => 'Méthode non autorisée']);
+    //         return;
+    //     }
 
-        $input = json_decode(file_get_contents('php://input'), true);
+    //     $input = json_decode(file_get_contents('php://input'), true);
 
-        if (!$input) {
-            http_response_code(400);
-            echo json_encode(['Error' => 'Données invalides']);
-            return;
-        }
+    //     if (!$input) {
+    //         http_response_code(400);
+    //         echo json_encode(['Error' => 'Données invalides']);
+    //         return;
+    //     }
 
-        $sensorType = 'proximity';
-        $value = $input['distance'] ?? null;
-        $location = $input['location'] ?? 'Chambre froide principale';
+    //     $sensorType = 'proximity';
+    //     $value = $input['distance'] ?? null;
+    //     $location = $input['location'] ?? 'Chambre froide principale';
 
-        if ($value === null) {
-            http_response_code(400);
-            echo json_encode(['Error' => 'Valeur de distance requise']);
-            return;
-        }
+    //     if ($value === null) {
+    //         http_response_code(400);
+    //         echo json_encode(['Error' => 'Valeur de distance requise']);
+    //         return;
+    //     }
 
-        $conn = $database->connect();
+    //     $conn = $database->connect();
+    //     if (!$conn) {
+    //         http_response_code(500);
+    //         echo json_encode(['Error' => 'Erreur de connexion à la base de données']);
+    //         return;
+    //     }
+
+    //     $stmt = $conn->prepare("INSERT INTO sensor_data (sensor_type, value, location, team_id) VALUES (?, ?, ?, ?)");
+    //     $teamId = 1; // ID de votre équipe
+    //     $stmt->bind_param("sdsi", $sensorType, $value, $location, $teamId);
+
+    //     if ($stmt->execute()) {
+    //         // Vérifier si une alerte doit être déclenchée
+    //         $this->checkProximityAlert($value, $database);
+    //         echo json_encode(['Success' => 'Données enregistrées']);
+    //     } else {
+    //         http_response_code(500);
+    //         echo json_encode(['Error' => 'Erreur lors de l\'enregistrement']);
+    //     }
+
+    //     $stmt->close();
+    //     $conn->close();
+    // }
+
+    /**
+     * API : récupérer les dernières valeurs de distance (capteur ultrason, sensorId = 3)
+     * Retourne un JSON des 50 mesures les plus récentes.
+     */
+    public function getDistanceData() {
+        header('Content-Type: application/json');
+
+        // Connexion à la BDD partagée (Azure)
+        require_once 'Database/SharedDatabase.php';
+        $sharedDb = new SharedDatabase();
+        $conn = $sharedDb->connect();
         if (!$conn) {
             http_response_code(500);
-            echo json_encode(['Error' => 'Erreur de connexion à la base de données']);
+            echo json_encode(['Error' => 'Connexion à la base partagée impossible']);
             return;
         }
 
-        $stmt = $conn->prepare("INSERT INTO sensor_data (sensor_type, value, location, team_id) VALUES (?, ?, ?, ?)");
-        $teamId = 1; // ID de votre équipe
-        $stmt->bind_param("sdsi", $sensorType, $value, $location, $teamId);
-
-        if ($stmt->execute()) {
-            // Vérifier si une alerte doit être déclenchée
-            $this->checkProximityAlert($value, $database);
-            echo json_encode(['Success' => 'Données enregistrées']);
-        } else {
-            http_response_code(500);
-            echo json_encode(['Error' => 'Erreur lors de l\'enregistrement']);
+        // Requête : dernières 50 lignes pour sensorId = 3
+        $sql  = "SELECT timeRecorded AS timestamp, value 
+                FROM sensorData 
+                WHERE sensorId = 3
+                    AND  timeRecorded > UTC_TIMESTAMP() - INTERVAL 30 SECOND
+                ORDER BY timeRecorded DESC 
+                LIMIT 50";
+        $result = $conn->query($sql);
+        // format JSON
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;      // chaque ligne : {timestamp: "...", value: 23.4}
         }
-
-        $stmt->close();
         $conn->close();
+        echo json_encode($data);
     }
 
     /**
@@ -207,4 +241,6 @@ class SensorController {
         $conn->close();
         echo json_encode($alerts);
     }
+
+    
 }

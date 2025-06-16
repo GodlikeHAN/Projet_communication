@@ -1,8 +1,10 @@
 // Dashboard JavaScript pour le système de chambre froide
 class ColdRoomDashboard {
     constructor() {
+        this.distanceApi = '/Projet_communication/api/distance-data';
         this.proximityThreshold = 20; // Seuil d'alerte en cm
         this.updateInterval = 2000; // Mise à jour toutes les 2 secondes
+        this.maxAgeSec = 30;
         this.chart = null;
         this.isAlertActive = false;
 
@@ -57,22 +59,50 @@ class ColdRoomDashboard {
         }, this.updateInterval);
 
         // Simulation de données du capteur de proximité (remplacer par vraies données)
-        this.simulateProximityData();
+        //this.simulateProximityData();
     }
 
     async updateSensorData() {
         try {
-            const response = await fetch('/Projet_communication/api/sensor-data');
-            if (response.ok) {
-                const data = await response.json();
-                this.processSensorData(data);
-                this.updateChart(data);
-                this.updateDataTable(data);
+            const r = await fetch(this.distanceApi);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+
+            const data = await r.json();
+
+            if (data.length === 0) {
+                this.updateProximityDisplay(null);
+                this.updateDataTable([]);
+                return;
             }
-        } catch (error) {
-            console.error('Erreur lors de la récupération des données:', error);
+            const latest = data[0];
+            const localIso = latest.timestamp.replace(' ', 'T');
+            const ageSec   = (Date.now() - Date.parse(localIso)) / 1000;
+            const distance= (ageSec <= this.maxAgeSec) ? parseFloat(latest.value): null;
+            this.updateProximityDisplay(distance);
+
+            const chartData = data.slice(0, 20).reverse();
+            const labels = chartData.map(x => this.formatTime(x.timestamp));
+            const values = chartData.map(x => parseFloat(x.value));
+
+            if (this.chart) {
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = values;
+                this.chart.update();
+            }
+
+            this.updateDataTable(
+                data.slice(0, 10).map(x => ({
+                    timestamp: x.timestamp,
+                    sensor_type: 'proximity',
+                    value: x.value,
+                    location: 'Chambre froide'
+                }))
+            );
+        } catch (e) {
+            console.error('Distance fetch error:', e);
         }
     }
+
 
     processSensorData(data) {
         const proximityData = data.filter(item => item.sensor_type === 'proximity');
@@ -84,53 +114,63 @@ class ColdRoomDashboard {
     }
 
     updateProximityDisplay(distance) {
-        const distanceElement = document.getElementById('distance-value');
-        const statusElement = document.getElementById('sensor-status');
-        const proximityStatusElement = document.getElementById('proximity-status');
-        const gaugeFill = document.getElementById('gauge-fill');
+        // -- Récupération des éléments du DOM --
+        const distanceElement   = document.getElementById('distance-value');
+        const statusElement     = document.getElementById('sensor-status');
+        const proxElement       = document.getElementById('proximity-status');
+        const gaugeFill         = document.getElementById('gauge-fill');
+        const securityStatus    = document.getElementById('security-status');
 
-        if (distanceElement) {
-            distanceElement.textContent = distance.toFixed(1);
+        /* ---------- Cas 1 : pas de valeur (capteur déconnecté) ---------- */
+        if (distance === null || typeof distance === 'undefined') {
+            if (distanceElement) distanceElement.textContent = '--';
+            if (proxElement)     proxElement.textContent     = '--';
+            if (statusElement) {
+                statusElement.textContent = 'Capteur hors ligne';
+                statusElement.className   = 'sensor-status offline';   // pensez à définir ce style en CSS
+            }
+            if (gaugeFill) gaugeFill.style.width = '0%';
+            if (securityStatus) {
+                securityStatus.textContent = 'Indéfini';
+                securityStatus.style.color = '#bdc3c7';
+            }
+            return;   // on ne continue pas plus loin
         }
 
-        if (proximityStatusElement) {
-            proximityStatusElement.textContent = `${distance.toFixed(1)} cm`;
-        }
+        /* ---------- Cas 2 : on a bien une distance ---------- */
+        // 1) Affichage brut
+        if (distanceElement) distanceElement.textContent = distance.toFixed(1);
+        if (proxElement)     proxElement.textContent   = `${distance.toFixed(1)} cm`;
 
-        // Mise à jour du statut et de la jauge
-        let status, statusClass, fillPercentage;
+        // 2) Calcul du statut et de la jauge
+        let status       = 'Zone sécurisée';
+        let statusClass  = 'normal';
+        let fillPercent  = Math.min(90, (distance / 100) * 100);
 
         if (distance < this.proximityThreshold) {
-            status = 'ALERTE - Intrusion détectée !';
+            status      = 'ALERTE - Intrusion détectée !';
             statusClass = 'danger';
-            fillPercentage = 0;
+            fillPercent = 0;
             this.triggerSecurityAlert(distance);
         } else if (distance < this.proximityThreshold * 1.5) {
-            status = 'Attention - Proximité détectée';
+            status      = 'Attention - Proximité détectée';
             statusClass = 'warning';
-            fillPercentage = 30;
-        } else {
-            status = 'Zone sécurisée';
-            statusClass = 'normal';
-            fillPercentage = Math.min(90, (distance / 100) * 100);
+            fillPercent = 30;
         }
 
         if (statusElement) {
             statusElement.textContent = status;
-            statusElement.className = `sensor-status ${statusClass}`;
+            statusElement.className   = `sensor-status ${statusClass}`;
         }
+        if (gaugeFill) gaugeFill.style.width = `${fillPercent}%`;
 
-        if (gaugeFill) {
-            gaugeFill.style.width = `${fillPercentage}%`;
-        }
-
-        // Mise à jour du statut de sécurité global
-        const securityStatus = document.getElementById('security-status');
+        // 3) Statut global
         if (securityStatus) {
-            securityStatus.textContent = distance < this.proximityThreshold ? 'ALERTE' : 'Normal';
-            securityStatus.style.color = distance < this.proximityThreshold ? '#e74c3c' : '#27ae60';
+            securityStatus.textContent = (distance < this.proximityThreshold) ? 'ALERTE' : 'Normal';
+            securityStatus.style.color = (distance < this.proximityThreshold) ? '#e74c3c' : '#27ae60';
         }
     }
+
 
     async controlBuzzer(action) {
         try {
@@ -412,22 +452,25 @@ class ColdRoomDashboard {
         }, 3000);
     }
 
-    formatDateTime(timestamp) {
-        return new Date(timestamp).toLocaleString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+    formatDateTime(ts) {            
+    return new Date(ts).toLocaleString('fr-FR', {
+        day:    '2-digit',
+        month:  '2-digit',
+        year:   'numeric',
+        hour:   '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Paris'  
+    });
+}
 
-    formatTime(timestamp) {
-        return new Date(timestamp).toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+    formatTime(ts) {
+    return new Date(ts).toLocaleTimeString('fr-FR', {
+        hour:   '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Paris'
+    });
+}
+    
 }
 
 // Initialisation au chargement de la page

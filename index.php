@@ -22,6 +22,9 @@ $router->addRoute('/api/sensor-data',           SensorController::class, 'getSen
 $router->addRoute('/api/proximity-data',        SensorController::class, 'recordProximityData');
 $router->addRoute('/api/buzzer',                SensorController::class, 'controlBuzzer');
 $router->addRoute('/api/alerts',                SensorController::class, 'getAlerts');
+$router->addRoute('/upload-shared-distance',    SensorController::class, 'uploadToSharedDatabase');
+$router->addRoute('/api/distance-data',         SensorController::class, 'getDistanceData');
+
 
 if ($uri !== null) {
     try {

@@ -733,4 +733,8 @@ body {
     .sensor-value {
         font-size: 2.5rem;
     }
+
+    .sensor-status.offline { 
+        color:#bdc3c7; 
+    }
 }

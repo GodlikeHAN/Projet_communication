@@ -27,31 +27,36 @@ class Router
      * @throws \Exception
      */
     public function dispatch($uri) {
-        $uri = str_replace("?", "", $uri);
-        $uri = str_replace("/Projet_communication", "", $uri);
+    $uri = str_replace("?", "", $uri);
+    $uri = str_replace("/Projet_communication", "", $uri);
 
-        if (array_key_exists($uri, $this->routes)) {
-            $controllerName = $this->routes[$uri]['controller'];
-            $actionName = $this->routes[$uri]['action'];
-
-            // Vérifier si le controller existe
-            if (!class_exists($controllerName)) {
-                throw new \Exception("Controller non trouvé: $controllerName");
-            }
-
-            $controller = new $controllerName();
-
-            // Vérifier si l'action existe dans le controller
-            if (!method_exists($controller, $actionName)) {
-                throw new \Exception("Action non trouvée: $actionName dans le controller $controllerName");
-            }
-
-            // Appeler l'action avec la base de données
-            $controller->$actionName(new Database());
-        } else {
-            // Route par défaut - redirection vers l'accueil
-            $controller = new HomeController();
-            $controller->home(new Database());
-        }
+    // ✅ Cas particulier : route pour upload vers la base partagée (pas besoin de Database)
+    if ($uri === '/upload-shared-distance') {
+        require_once('Database/SharedDatabase.php');
+        $controller = new SensorController();
+        $controller->uploadToSharedDatabase(); // Pas besoin d'injecter $database
+        return;
     }
+
+    if (array_key_exists($uri, $this->routes)) {
+        $controllerName = $this->routes[$uri]['controller'];
+        $actionName = $this->routes[$uri]['action'];
+
+        if (!class_exists($controllerName)) {
+            throw new \Exception("Controller non trouvé: $controllerName");
+        }
+
+        $controller = new $controllerName();
+
+        if (!method_exists($controller, $actionName)) {
+            throw new \Exception("Action non trouvée: $actionName dans le controller $controllerName");
+        }
+
+        $controller->$actionName(new Database());
+    } else {
+        $controller = new HomeController();
+        $controller->home(new Database());
+    }
+}
+
 }
