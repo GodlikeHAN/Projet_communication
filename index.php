@@ -27,6 +27,7 @@ $router->addRoute('/api/proximity-data',        SensorController::class, 'record
 $router->addRoute('/api/sensor-stats',          SensorController::class, 'getSensorStats');
 $router->addRoute('/api/realtime-data',         SensorController::class, 'getRealtimeData');
 $router->addRoute('/api/all-sensors',           SensorController::class, 'getAllSensorsData');
+$router->addRoute('/api/temperature-data',      SensorController::class, 'getTemperatureData');
 
 // API Routes pour les actionneurs et alertes (DB locale)
 $router->addRoute('/api/buzzer',                SensorController::class, 'controlBuzzer');
