@@ -37,6 +37,10 @@ class ColdRoomDashboard {
             this.acknowledgeAlert();
         });
 
+        document.getElementById('buzzer-auto')?.addEventListener('click', () => {
+            this.controlBuzzer('auto');
+        });
+
         // Fermeture modal en cliquant à l'extérieur
         window.addEventListener('click', (event) => {
             const modal = document.getElementById('alert-modal');
@@ -49,6 +53,14 @@ class ColdRoomDashboard {
     async loadInitialData() {
         await this.updateSensorData();
         await this.updateAlerts();
+        
+        try {
+            const r = await fetch('/Projet_communication/api/buzzer-status');
+            if (r.ok) {
+                const { action } = await r.json();
+                this.updateBuzzerStatus(action); 
+            }
+        } catch (e) { console.error('buzzer-status err', e); }
     }
 
     startDataUpdates() {
@@ -198,9 +210,21 @@ class ColdRoomDashboard {
 
     updateBuzzerStatus(action) {
         const buzzerStatus = document.getElementById('buzzer-status');
-        if (buzzerStatus) {
-            buzzerStatus.textContent = action === 'on' ? 'Activée' : 'Arrêtée';
-            buzzerStatus.style.color = action === 'on' ? '#e74c3c' : '#27ae60';
+        if (!buzzerStatus) return;
+
+        switch (action) {
+            case 'on':
+                buzzerStatus.textContent = 'Activée';
+                buzzerStatus.style.color = '#e74c3c';
+                break;
+            case 'off':
+                buzzerStatus.textContent = 'Arrêtée';
+                buzzerStatus.style.color = '#27ae60';
+                break;
+            case 'auto':
+                buzzerStatus.textContent = 'Auto';
+                buzzerStatus.style.color = '#3498db';
+                break;
         }
     }
 

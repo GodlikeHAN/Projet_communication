@@ -129,48 +129,64 @@ class SensorController {
     /**
      * API pour contrôler le buzzer
      */
-    public function controlBuzzer($database) {
+    public function controlBuzzer($database){
+        header('Content-Type: application/json; charset=utf-8');
+
+        /* ---------- 1.  méthode & payload ---------- */
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['Error' => 'Méthode non autorisée']);
             return;
         }
 
-        $input = json_decode(file_get_contents('php://input'), true);
-        $action = $input['action'] ?? null; // 'on' ou 'off'
+        $payload = json_decode(file_get_contents('php://input'), true);
+        $action  = strtolower($payload['action'] ?? '');
 
-        if (!in_array($action, ['on', 'off'])) {
+        //  on / off / auto
+        $valid = ['on', 'off', 'auto'];
+        if (!in_array($action, $valid, true)) {
             http_response_code(400);
-            echo json_encode(['Error' => 'Action invalide (on/off)']);
+            echo json_encode(['Error' => 'Action invalide (on/off/auto)']);
             return;
         }
 
-        $conn = $database->connect();
-        if (!$conn) {
-            http_response_code(500);
-            echo json_encode(['Error' => 'Erreur de connexion à la base de données']);
-            return;
+       
+        try {
+            $conn = $database->connect();
+            if ($conn && !$conn->connect_error) {
+                $stmt = $conn->prepare(
+                    "INSERT INTO actuator_actions (actuator_type, action, location, team_id)
+                    VALUES ('buzzer', ?, 'Chambre froide principale', 1)"
+                );
+                if ($stmt) {
+                    $stmt->bind_param('s', $action);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+                $conn->close();
+            }
+        } catch (Throwable $e) {
+            error_log("DB insert buzzer failed: " . $e->getMessage());
+            
         }
 
-        // Enregistrer l'action du buzzer
-        $stmt = $conn->prepare("INSERT INTO actuator_actions (actuator_type, action, location, team_id) VALUES (?, ?, ?, ?)");
-        $actuatorType = 'buzzer';
-        $location = 'Chambre froide principale';
-        $teamId = 1;
-        $stmt->bind_param("sssi", $actuatorType, $action, $location, $teamId);
-
-        if ($stmt->execute()) {
-            // Ici vous pourriez envoyer la commande au buzzer physique
-            // via port série ou autre méthode de communication
-            echo json_encode(['Success' => "Buzzer $action"]);
+       
+        $port = '\\\\.\\COM10';                    
+        $fp   = @fopen($port, 'wb');                
+        if ($fp) {
+            fwrite($fp, strtoupper($action) . PHP_EOL);  
+            fclose($fp);
         } else {
-            http_response_code(500);
-            echo json_encode(['Error' => 'Erreur lors du contrôle du buzzer']);
+            error_log("⚠️  Impossible d'ouvrir $port pour $action");
+            
         }
 
-        $stmt->close();
-        $conn->close();
+        
+        echo json_encode(['Success' => "Buzzer $action"]);
     }
+
+
+
 
     /**
      * Vérifier si une alerte de proximité doit être déclenchée
@@ -241,6 +257,23 @@ class SensorController {
         $conn->close();
         echo json_encode($alerts);
     }
+
+    public function getBuzzerStatus($database){
+        header('Content-Type: application/json');
+        $conn = $database->connect();
+        if (!$conn) { http_response_code(500); echo json_encode(['Error'=>'DB']); return; }
+
+        $row = $conn->query(
+            "SELECT action FROM actuator_actions
+            WHERE actuator_type='buzzer'
+            ORDER BY created_at DESC
+            LIMIT 1"
+        )->fetch_assoc();
+
+        $conn->close();
+        echo json_encode(['action' => $row ? $row['action'] : 'off']);
+    }
+
 
     
 }

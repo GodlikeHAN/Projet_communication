@@ -80,6 +80,9 @@
                     <button id="buzzer-off" class="btn btn-success">
                         <i class="fas fa-stop"></i> Arrêter Alarme
                     </button>
+                    <button id="buzzer-auto" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Mode Auto
+                    </button>
                 </div>
                 <div class="buzzer-status">
                     <span id="buzzer-status">Arrêtée</span>
