@@ -33,6 +33,9 @@ $router->addRoute('/api/buzzer',                SensorController::class, 'contro
 $router->addRoute('/api/alerts',                SensorController::class, 'getAlerts');
 $router->addRoute('/api/actuator-history',      SensorController::class, 'getActuatorHistory');
 $router->addRoute('/api/resolve-alert',         SensorController::class, 'resolveAlert');
+$router->addRoute('/upload-shared-distance',    SensorController::class, 'uploadToSharedDatabase');
+$router->addRoute('/api/distance-data',         SensorController::class, 'getDistanceData');
+$router->addRoute('/api/buzzer-status',         SensorController::class, 'getBuzzerStatus');
 
 if ($uri !== null) {
     try {
