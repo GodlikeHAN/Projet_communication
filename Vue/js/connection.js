@@ -1,92 +1,166 @@
-// Gestion du formulaire de connexion simple
+// JavaScript pour la page de connexion
 document.addEventListener('DOMContentLoaded', function() {
-  const simpleLoginForm = document.getElementById('simpleLoginForm');
-  const loginFormElement = document.getElementById('loginFormElement');
-  const signupFormElement = document.getElementById('signupFormElement');
+  const form = document.getElementById('connection-form');
+  const errorMessage = document.getElementById('error-message');
+  const successMessage = document.getElementById('success-message');
 
-  // Formulaire de connexion simple (original)
-  if (simpleLoginForm) {
-    simpleLoginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-      const email = document.querySelector('input[name="email"]').value;
-      const password = document.querySelector('input[name="password"]').value;
-      const errorElement = document.getElementById('simpleLoginError');
-      const successElement = document.getElementById('simpleLoginSuccess');
+    // Récupération des données du formulaire
+    const formData = {
+      email: document.querySelector('input[name="email"]').value.trim(),
+      password: document.querySelector('input[name="password"]').value
+    };
 
-      try {
-        const res = await fetch('/Projet_communication/connection', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+    // Validation côté client
+    if (!validateForm(formData)) {
+      return;
+    }
 
-        const data = await res.json();
+    // Envoi des données
+    try {
+      showLoading(true);
 
-        if (res.ok) {
-          successElement.textContent = data.Success;
-          errorElement.textContent = '';
-          // Redirection après succès
-          setTimeout(() => {
-            window.location.href = '/Projet_communication/';
-          }, 1500);
-        } else {
-          errorElement.textContent = data.Error;
-          successElement.textContent = '';
-        }
-      } catch (error) {
-        errorElement.textContent = 'Erreur de connexion au serveur' ;
-        successElement.textContent = '';
+      const response = await fetch('/Projet_communication/connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      // Vérifier si la réponse est du JSON valide
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Réponse non-JSON reçue:', text);
+        throw new Error('Le serveur a renvoyé une réponse non-JSON');
+      }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showSuccess(result.Success);
+
+        // Redirection vers le dashboard après connexion réussie
+        setTimeout(() => {
+          window.location.href = '/Projet_communication/dashboard';
+        }, 1000);
+      } else {
+        showError(result.Error || 'Erreur lors de la connexion');
+      }
+    } catch (error) {
+      console.error('Erreur complète:', error);
+      if (error.message.includes('JSON')) {
+        showError('Erreur de communication avec le serveur. Vérifiez votre configuration.');
+      } else {
+        showError('Erreur de connexion au serveur');
+      }
+    } finally {
+      showLoading(false);
+    }
+  });
+
+  function validateForm(data) {
+    // Vérification des champs vides
+    if (!data.email || !data.password) {
+      showError('Tous les champs sont obligatoires');
+      return false;
+    }
+
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      showError('Veuillez entrer une adresse email valide');
+      return false;
+    }
+
+    return true;
+  }
+
+  function showError(message) {
+    hideMessages();
+    errorMessage.textContent = message;
+    errorMessage.classList.add('show');
+  }
+
+  function showSuccess(message) {
+    hideMessages();
+    successMessage.textContent = message;
+    successMessage.classList.add('show');
+  }
+
+  function hideMessages() {
+    errorMessage.classList.remove('show');
+    successMessage.classList.remove('show');
+  }
+
+  function showLoading(show) {
+    const submitButton = document.querySelector('.button-connection');
+    if (show) {
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+    } else {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+    }
+  }
+
+  // Validation en temps réel
+  const inputs = document.querySelectorAll('.input-user-first, .input-user');
+  inputs.forEach(input => {
+    input.addEventListener('blur', function() {
+      validateField(this);
+    });
+
+    input.addEventListener('input', function() {
+      // Nettoyer les messages d'erreur pendant la saisie
+      if (errorMessage.classList.contains('show')) {
+        hideMessages();
       }
     });
-  }
-  // Formulaire d'inscription
-  if (signupFormElement) {
-    signupFormElement.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  });
 
-      const formData = new FormData(signupFormElement);
-      const nom = formData.get('nom');
-      const prenom = formData.get('prenom');
-      const email = formData.get('email');
-      const password = formData.get('password');
-      const confirm_password = formData.get('confirm_password');
-      const errorElement = document.getElementById('signupError');
-      const successElement = document.getElementById('signupSuccess');
+  function validateField(field) {
+    const value = field.value.trim();
+    const fieldName = field.getAttribute('name');
 
-      // Validation côté client
-      if (password !== confirm_password) {
-        errorElement.textContent = 'Les mots de passe ne correspondent pas';
-        successElement.textContent = '';
-        return;
-      }
-
-      try {
-        const res = await fetch('/Projet_communication/inscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nom, prenom, email, password, confirm_password })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          successElement.textContent = data.Success;
-          errorElement.textContent = '';
-          // Réinitialiser le formulaire
-          signupFormElement.reset();
-          // Optionnel: basculer vers l'onglet connexion
-          setTimeout(() => {
-            showForm('loginForm');
-          }, 2000);
+    switch (fieldName) {
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          setFieldError(field, 'Email invalide');
         } else {
-          errorElement.textContent = data.Error;
-          successElement.textContent = '';
+          setFieldValid(field);
         }
-      } catch (error) {
-        errorElement.textContent = 'Erreur de connexion au serveur';
-        successElement.textContent = '';
-      }
-    });
+        break;
+
+      case 'password':
+        if (value.length < 1) {
+          setFieldError(field, 'Mot de passe requis');
+        } else {
+          setFieldValid(field);
+        }
+        break;
+    }
   }
+
+  function setFieldError(field, message) {
+    field.style.borderColor = '#e74c3c';
+    field.title = message;
+  }
+
+  function setFieldValid(field) {
+    field.style.borderColor = '#27ae60';
+    field.title = '';
+  }
+
+  // Gestion des touches du clavier
+  document.addEventListener('keydown', function(e) {
+    // Échapper pour revenir à l'accueil
+    if (e.key === 'Escape') {
+      window.location.href = '/Projet_communication/';
+    }
+  });
 });

@@ -36,6 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
+            // Vérifier si la réponse est du JSON valide
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Réponse non-JSON reçue:', text);
+                throw new Error('Le serveur a renvoyé une réponse non-JSON');
+            }
+
             const result = await response.json();
 
             if (response.ok) {
@@ -47,11 +55,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = '/Projet_communication/connection';
                 }, 2000);
             } else {
-                showError(result.Error);
+                showError(result.Error || 'Erreur lors de l\'inscription');
             }
         } catch (error) {
-            console.error('Erreur:', error);
-            showError('Erreur de connexion au serveur');
+            console.error('Erreur complète:', error);
+            if (error.message.includes('JSON')) {
+                showError('Erreur de communication avec le serveur. Vérifiez votre configuration.');
+            } else {
+                showError('Erreur de connexion au serveur');
+            }
         } finally {
             showLoading(false);
         }
@@ -122,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showLoading(show) {
-        const submitButton = document.querySelector('.submit-button');
+        const submitButton = document.querySelector('.button-connection');
         if (show) {
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription en cours...';
@@ -195,8 +207,11 @@ document.addEventListener('DOMContentLoaded', function() {
         field.title = message;
     }
 
-    function setFieldValid(field) {
-        field.style.borderColor = '#27ae60';
-        field.title = '';
-    }
+    // Gestion des touches du clavier
+    document.addEventListener('keydown', function(e) {
+        // Échapper pour revenir à l'accueil
+        if (e.key === 'Escape') {
+            window.location.href = '/Projet_communication/';
+        }
+    });
 });
