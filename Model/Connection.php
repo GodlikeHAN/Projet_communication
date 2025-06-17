@@ -13,13 +13,14 @@ class Connection {
      * @return bool
      */
     public function checkCredentials($email, $password) {
-        $stmt = mysqli_prepare($this->db, 'SELECT email, password FROM users WHERE email = ?');
+        $stmt = mysqli_prepare($this->db, 'SELECT id, name, password FROM users WHERE email = ?');
         mysqli_stmt_bind_param($stmt, 's', $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $user = mysqli_fetch_assoc($result);
 
         if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
             return true;
         }
 
@@ -64,19 +65,18 @@ class Connection {
      * @param string $password
      * @return bool
      */
-    public function createUser($nom, $prenom, $email, $password) {
+    public function createUser($name, $email, $password) {
         // Vérifier si l'email existe déjà
         if ($this->emailExists($email)) {
             return false;
         }
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $fullName = $prenom . ' ' . $nom;
 
         $stmt = mysqli_prepare($this->db,
             "INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, NOW())"
         );
-        mysqli_stmt_bind_param($stmt, 'sss', $fullName, $email, $hashedPassword);
+        mysqli_stmt_bind_param($stmt, 'sss', $name, $email, $hashedPassword);
 
         return mysqli_stmt_execute($stmt);
     }
