@@ -5,7 +5,7 @@ class ColdRoomDashboard {
         this.temperatureApi = '/Projet_communication/api/temperature-data';
         this.proximityThreshold = 20; // Seuil d'alerte en cm
         this.updateInterval = 2000; // Mise à jour toutes les 2 secondes
-        this.maxAgeSec = 30;
+        this.maxAgeSec = 120; // 2 minutes
         this.chart = null;
         this.isAlertActive = false;
 
