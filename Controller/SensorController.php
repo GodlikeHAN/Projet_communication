@@ -273,7 +273,40 @@ class SensorController {
         $conn->close();
         echo json_encode(['action' => $row ? $row['action'] : 'off']);
     }
+    /**
+     * API : récupérer les dernières valeurs de température (capteur température, sensorId = 1)
+     * Retourne un JSON des 50 mesures les plus récentes.
+     */
+    public function getTemperatureData() {
+        header('Content-Type: application/json');
 
+        // Connexion à la BDD partagée (Azure)
+        require_once 'Database/SharedDatabase.php';
+        $sharedDb = new SharedDatabase();
+        $conn = $sharedDb->connect();
+        if (!$conn) {
+            http_response_code(500);
+            echo json_encode(['Error' => 'Connexion à la base partagée impossible']);
+            return;
+        }
+
+        // Requête : dernières 50 lignes pour sensorId = 1 (température)
+        $sql  = "SELECT timeRecorded AS timestamp, value 
+            FROM sensorData 
+            WHERE sensorId = 1
+                AND  timeRecorded > UTC_TIMESTAMP() - INTERVAL 30 SECOND
+            ORDER BY timeRecorded DESC 
+            LIMIT 50";
+        $result = $conn->query($sql);
+
+        // Format JSON
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;      // chaque ligne : {timestamp: "...", value: 23.4}
+        }
+        $conn->close();
+        echo json_encode($data);
+    }
 
     
 }

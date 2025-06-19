@@ -4,6 +4,10 @@ require_once('Controller/UserController.php');
 require_once('Controller/HomeController.php');
 require_once('Controller/SensorController.php');
 require_once('Database/Database.php');
+require_once('Database/SharedDatabase.php');
+require_once('Model/User.php');
+require_once('Model/Alert.php');
+require_once('Model/SensorData.php');
 
 class Router
 {

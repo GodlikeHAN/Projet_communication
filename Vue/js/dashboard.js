@@ -2,9 +2,10 @@
 class ColdRoomDashboard {
     constructor() {
         this.distanceApi = '/Projet_communication/api/distance-data';
+        this.temperatureApi = '/Projet_communication/api/temperature-data';
         this.proximityThreshold = 20; // Seuil d'alerte en cm
         this.updateInterval = 2000; // Mise à jour toutes les 2 secondes
-        this.maxAgeSec = 30;
+        this.maxAgeSec = 120; // 2 minutes
         this.chart = null;
         this.isAlertActive = false;
 
@@ -52,13 +53,14 @@ class ColdRoomDashboard {
 
     async loadInitialData() {
         await this.updateSensorData();
+        await this.updateTemperatureData();
         await this.updateAlerts();
-        
+
         try {
             const r = await fetch('/Projet_communication/api/buzzer-status');
             if (r.ok) {
                 const { action } = await r.json();
-                this.updateBuzzerStatus(action); 
+                this.updateBuzzerStatus(action);
             }
         } catch (e) { console.error('buzzer-status err', e); }
     }
@@ -67,11 +69,9 @@ class ColdRoomDashboard {
         // Mise à jour périodique des données
         setInterval(() => {
             this.updateSensorData();
+            this.updateTemperatureData();
             this.updateAlerts();
         }, this.updateInterval);
-
-        // Simulation de données du capteur de proximité (remplacer par vraies données)
-        //this.simulateProximityData();
     }
 
     async updateSensorData() {
@@ -115,6 +115,55 @@ class ColdRoomDashboard {
         }
     }
 
+    async updateTemperatureData() {
+        try {
+            const r = await fetch(this.temperatureApi);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+
+            const data = await r.json();
+
+            if (data.length === 0) {
+                this.updateTemperatureDisplay(null);
+                return;
+            }
+
+            const latest = data[0];
+            const localIso = latest.timestamp.replace(' ', 'T');
+            const ageSec = (Date.now() - Date.parse(localIso)) / 1000;
+            const temperature = (ageSec <= this.maxAgeSec) ? parseFloat(latest.value) : null;
+
+            this.updateTemperatureDisplay(temperature);
+
+        } catch (e) {
+            console.error('Temperature fetch error:', e);
+            this.updateTemperatureDisplay(null);
+        }
+    }
+
+    updateTemperatureDisplay(temperature) {
+        const tempElement = document.getElementById('temperature-status');
+
+        if (temperature === null || typeof temperature === 'undefined') {
+            if (tempElement) {
+                tempElement.textContent = '--°C';
+                tempElement.style.color = '#bdc3c7';
+            }
+            return;
+        }
+
+        if (tempElement) {
+            tempElement.textContent = `${temperature.toFixed(1)}°C`;
+
+            // Changement de couleur selon la température (pour une chambre froide)
+            if (temperature < -10 || temperature > 5) {
+                tempElement.style.color = '#e74c3c'; // Rouge si température anormale
+            } else if (temperature < -5 && temperature > 0) {
+                tempElement.style.color = '#f39c12'; // Orange si température limite
+            } else {
+                tempElement.style.color = '#27ae60'; // Vert si température normale
+            }
+        }
+    }
 
     processSensorData(data) {
         const proximityData = data.filter(item => item.sensor_type === 'proximity');
@@ -182,7 +231,6 @@ class ColdRoomDashboard {
             securityStatus.style.color = (distance < this.proximityThreshold) ? '#e74c3c' : '#27ae60';
         }
     }
-
 
     async controlBuzzer(action) {
         try {
@@ -413,24 +461,6 @@ class ColdRoomDashboard {
         }
     }
 
-    simulateProximityData() {
-        // Simulation de données pour les tests (à remplacer par de vraies données)
-        let lastDistance = 45;
-
-        setInterval(() => {
-            // Variation aléatoire de distance
-            const variation = (Math.random() - 0.5) * 10;
-            lastDistance = Math.max(5, Math.min(100, lastDistance + variation));
-
-            // Parfois simulation d'intrusion
-            if (Math.random() < 0.05) { // 5% de chance
-                lastDistance = Math.random() * 15; // Distance d'intrusion
-            }
-
-            this.updateProximityDisplay(lastDistance);
-        }, 3000);
-    }
-
     showNotification(message, type = 'info') {
         // Créer une notification temporaire
         const notification = document.createElement('div');
@@ -476,25 +506,24 @@ class ColdRoomDashboard {
         }, 3000);
     }
 
-    formatDateTime(ts) {            
-    return new Date(ts).toLocaleString('fr-FR', {
-        day:    '2-digit',
-        month:  '2-digit',
-        year:   'numeric',
-        hour:   '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Paris'  
-    });
-}
+    formatDateTime(ts) {
+        return new Date(ts).toLocaleString('fr-FR', {
+            day:    '2-digit',
+            month:  '2-digit',
+            year:   'numeric',
+            hour:   '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Paris'
+        });
+    }
 
     formatTime(ts) {
-    return new Date(ts).toLocaleTimeString('fr-FR', {
-        hour:   '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Paris'
-    });
-}
-    
+        return new Date(ts).toLocaleTimeString('fr-FR', {
+            hour:   '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Paris'
+        });
+    }
 }
 
 // Initialisation au chargement de la page

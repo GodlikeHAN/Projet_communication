@@ -10,16 +10,15 @@
 </head>
 <body>
 <div class="auth-container">
-    <div class="auth-background">
-        <div class="cold-room-visual">
-            <i class="fas fa-snowflake snowflake-1"></i>
-            <i class="fas fa-snowflake snowflake-2"></i>
-            <i class="fas fa-snowflake snowflake-3"></i>
-            <i class="fas fa-palette artwork-icon"></i>
-        </div>
-    </div>
+
 
     <div class="auth-form-container">
+        <!-- Bouton retour à l'accueil -->
+        <a href="/Projet_communication/" class="back-home-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span>Accueil</span>
+        </a>
+
         <div class="form-inscription">
             <div class="form-header">
                 <i class="fas fa-user-plus"></i>
@@ -29,26 +28,22 @@
 
             <form class="form" id="inscription-form">
                 <div class="input-group">
-                    <i class="fas fa-user"></i>
                     <input name="name" type="text" class="input-user" placeholder="Nom complet" required />
                 </div>
 
                 <div class="input-group">
-                    <i class="fas fa-envelope"></i>
                     <input name="email" type="email" class="input-user" placeholder="Adresse email" required />
                 </div>
 
                 <div class="input-group">
-                    <i class="fas fa-lock"></i>
                     <input name="password" type="password" class="input-user" placeholder="Mot de passe" required />
                 </div>
 
                 <div class="input-group">
-                    <i class="fas fa-lock"></i>
                     <input name="confirm-password" type="password" class="input-user" placeholder="Confirmer le mot de passe" required />
                 </div>
 
-                <button type="submit" class="button-connection submit-button">
+                <button type="submit" class="button-connection">
                     <i class="fas fa-user-plus"></i>
                     S'inscrire
                 </button>
