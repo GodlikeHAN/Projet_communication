@@ -54,7 +54,7 @@
 
             <div class="form-footer">
                 <p>Déjà un compte ?
-                    <a href="/Projet_communication/connection" class="link" style="text-decoration: none;color: white">Se connecter</a>
+                    <a href="/Projet_communication/connection" class="link" style="color: white">Se connecter</a>
                 </p>
             </div>
         </div>

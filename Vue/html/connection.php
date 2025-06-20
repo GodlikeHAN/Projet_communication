@@ -45,7 +45,7 @@
 
             <div class="form-footer">
                 <p>Pas encore de compte ?
-                    <a href="/Projet_communication/inscription" class="link">S'inscrire</a>
+                    <a href="/Projet_communication/inscription" class="link" style="color: white">S'inscrire</a>
                 </p>
             </div>
         </div>

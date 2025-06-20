@@ -163,7 +163,7 @@
 <section class="technology">
     <div class="container">
         <div class="section-header">
-            <h2>Technologies Utilisées</h2>
+            <h2 style="color: black">Technologies Utilisées</h2>
             <p>Un projet ISEP combinant électronique et informatique</p>
         </div>
 
@@ -220,7 +220,7 @@
     <div class="container">
         <div class="section-header">
             <h2>Notre Équipe</h2>
-            <p>Étudiants ISEP - Projet Numérique 2025</p>
+            <p>Étudiants ISEP - Groupe 6</p>
         </div>
 
         <div class="team-info">

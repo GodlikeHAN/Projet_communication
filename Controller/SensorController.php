@@ -294,7 +294,6 @@ class SensorController {
         $sql  = "SELECT timeRecorded AS timestamp, value 
             FROM sensorData 
             WHERE sensorId = 1
-                AND  timeRecorded > UTC_TIMESTAMP() - INTERVAL 30 SECOND
             ORDER BY timeRecorded DESC 
             LIMIT 50";
         $result = $conn->query($sql);
