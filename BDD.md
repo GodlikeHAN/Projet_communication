@@ -16,7 +16,16 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 
-
+CREATE TABLE IF NOT EXISTS alerts (
+id INT AUTO_INCREMENT PRIMARY KEY,
+alert_type VARCHAR(50) NOT NULL,
+message TEXT NOT NULL,
+severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+location VARCHAR(255) NOT NULL,
+resolved BOOLEAN DEFAULT FALSE,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+resolved_at TIMESTAMP NULL
+);
 
 
 
