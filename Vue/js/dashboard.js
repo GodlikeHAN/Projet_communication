@@ -1,11 +1,13 @@
-// Dashboard JavaScript pour le système de chambre froide
+// Dashboard JavaScript pour le système de chambre froide avec tous les capteurs
 class ColdRoomDashboard {
     constructor() {
         this.distanceApi = '/Projet_communication/api/distance-data';
         this.temperatureApi = '/Projet_communication/api/temperature-data';
+        this.lightApi = '/Projet_communication/api/light-data';
+        this.humidityApi = '/Projet_communication/api/humidity-data';
         this.proximityThreshold = 20; // Seuil d'alerte en cm
         this.updateInterval = 2000; // Mise à jour toutes les 2 secondes
-        this.maxAgeSec = 100000000000000000000000000; // 2 minutes
+        this.maxAgeSec = 10000000000000000000000000000;
         this.chart = null;
         this.isAlertActive = false;
 
@@ -54,6 +56,8 @@ class ColdRoomDashboard {
     async loadInitialData() {
         await this.updateSensorData();
         await this.updateTemperatureData();
+        await this.updateLightData();
+        await this.updateHumidityData();
         await this.updateAlerts();
 
         try {
@@ -70,6 +74,8 @@ class ColdRoomDashboard {
         setInterval(() => {
             this.updateSensorData();
             this.updateTemperatureData();
+            this.updateLightData();
+            this.updateHumidityData();
             this.updateAlerts();
         }, this.updateInterval);
     }
@@ -140,6 +146,56 @@ class ColdRoomDashboard {
         }
     }
 
+    async updateLightData() {
+        try {
+            const r = await fetch(this.lightApi);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+
+            const data = await r.json();
+
+            if (data.length === 0) {
+                this.updateLightDisplay(null);
+                return;
+            }
+
+            const latest = data[0];
+            const localIso = latest.timestamp.replace(' ', 'T');
+            const ageSec = (Date.now() - Date.parse(localIso)) / 1000;
+            const lightLevel = (ageSec <= this.maxAgeSec) ? parseFloat(latest.value) : null;
+
+            this.updateLightDisplay(lightLevel);
+
+        } catch (e) {
+            console.error('Light fetch error:', e);
+            this.updateLightDisplay(null);
+        }
+    }
+
+    async updateHumidityData() {
+        try {
+            const r = await fetch(this.humidityApi);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+
+            const data = await r.json();
+
+            if (data.length === 0) {
+                this.updateHumidityDisplay(null);
+                return;
+            }
+
+            const latest = data[0];
+            const localIso = latest.timestamp.replace(' ', 'T');
+            const ageSec = (Date.now() - Date.parse(localIso)) / 1000;
+            const humidity = (ageSec <= this.maxAgeSec) ? parseFloat(latest.value) : null;
+
+            this.updateHumidityDisplay(humidity);
+
+        } catch (e) {
+            console.error('Humidity fetch error:', e);
+            this.updateHumidityDisplay(null);
+        }
+    }
+
     updateTemperatureDisplay(temperature) {
         const tempElement = document.getElementById('temperature-status');
 
@@ -165,12 +221,162 @@ class ColdRoomDashboard {
         }
     }
 
-    processSensorData(data) {
-        const proximityData = data.filter(item => item.sensor_type === 'proximity');
+    updateLightDisplay(lightLevel) {
+        const lightElement = document.getElementById('light-status');
+        const lightValueElement = document.getElementById('light-value');
+        const lightStatusElement = document.getElementById('light-sensor-status');
+        const lightGaugeFill = document.getElementById('light-gauge-fill');
 
-        if (proximityData.length > 0) {
-            const latestData = proximityData[0];
-            this.updateProximityDisplay(latestData.value);
+        if (lightLevel === null || typeof lightLevel === 'undefined') {
+            if (lightElement) {
+                lightElement.textContent = '-- lux';
+                lightElement.style.color = '#bdc3c7';
+            }
+            if (lightValueElement) lightValueElement.textContent = '--';
+            if (lightStatusElement) {
+                lightStatusElement.textContent = 'Capteur hors ligne';
+                lightStatusElement.className = 'sensor-status light-offline';
+            }
+            if (lightGaugeFill) lightGaugeFill.style.width = '0%';
+            return;
+        }
+
+        // Mise à jour des valeurs
+        if (lightElement) {
+            lightElement.textContent = `${Math.round(lightLevel)} lux`;
+        }
+        if (lightValueElement) {
+            lightValueElement.textContent = Math.round(lightLevel);
+        }
+
+        // Détermination du statut et de la couleur selon le niveau de lumière
+        let status = '';
+        let statusClass = '';
+        let fillPercent = 0;
+        let color = '';
+
+        if (lightLevel < 10) {
+            status = 'Très sombre';
+            statusClass = 'dark';
+            fillPercent = 95;
+            color = '#2c3e50';
+        } else if (lightLevel < 100) {
+            status = 'Faible éclairage';
+            statusClass = 'dim';
+            fillPercent = 70;
+            color = '#f39c12';
+        } else if (lightLevel < 500) {
+            status = 'Éclairage normal';
+            statusClass = 'normal';
+            fillPercent = 40;
+            color = '#27ae60';
+        } else if (lightLevel < 1000) {
+            status = 'Bien éclairé';
+            statusClass = 'bright';
+            fillPercent = 20;
+            color = '#f1c40f';
+        } else {
+            status = 'Très lumineux';
+            statusClass = 'very-bright';
+            fillPercent = 5;
+            color = '#ffffff';
+        }
+
+        // Mise à jour de l'affichage
+        if (lightStatusElement) {
+            lightStatusElement.textContent = status;
+            lightStatusElement.className = `sensor-status ${statusClass}`;
+        }
+        if (lightGaugeFill) {
+            lightGaugeFill.style.width = `${fillPercent}%`;
+        }
+        if (lightElement) {
+            lightElement.style.color = color;
+        }
+    }
+
+    updateHumidityDisplay(humidity) {
+        const humidityElement = document.getElementById('humidity-status');
+        const humidityValueElement = document.getElementById('humidity-value');
+        const humidityStatusElement = document.getElementById('humidity-sensor-status');
+        const humidityGaugeFill = document.getElementById('humidity-gauge-fill');
+
+        if (humidity === null || typeof humidity === 'undefined') {
+            if (humidityElement) {
+                humidityElement.textContent = '--%';
+                humidityElement.style.color = '#bdc3c7';
+            }
+            if (humidityValueElement) humidityValueElement.textContent = '--';
+            if (humidityStatusElement) {
+                humidityStatusElement.textContent = 'Capteur hors ligne';
+                humidityStatusElement.className = 'sensor-status humidity-offline';
+            }
+            if (humidityGaugeFill) humidityGaugeFill.style.width = '100%';
+            return;
+        }
+
+        // Limiter les valeurs entre 0 et 100%
+        humidity = Math.max(0, Math.min(100, humidity));
+
+        // Mise à jour des valeurs
+        if (humidityElement) {
+            humidityElement.textContent = `${Math.round(humidity)}%`;
+        }
+        if (humidityValueElement) {
+            humidityValueElement.textContent = Math.round(humidity);
+        }
+
+        // Détermination du statut et de la couleur selon le niveau d'humidité
+        let status = '';
+        let statusClass = '';
+        let fillPercent = 0;
+        let color = '';
+
+        if (humidity < 20) {
+            status = 'Très sec';
+            statusClass = 'very-dry';
+            fillPercent = 100 - (humidity / 20) * 25; // 75-100%
+            color = '#e67e22';
+        } else if (humidity < 40) {
+            status = 'Sec';
+            statusClass = 'dry';
+            fillPercent = 100 - (humidity / 40) * 50; // 50-75%
+            color = '#f39c12';
+        } else if (humidity <= 60) {
+            status = 'Optimal';
+            statusClass = 'optimal';
+            fillPercent = 100 - (humidity / 60) * 75; // 25-50%
+            color = '#27ae60';
+        } else if (humidity <= 80) {
+            status = 'Humide';
+            statusClass = 'humid';
+            fillPercent = 100 - (humidity / 80) * 90; // 10-25%
+            color = '#3498db';
+        } else {
+            status = 'Très humide';
+            statusClass = 'very-humid';
+            fillPercent = 100 - (humidity / 100) * 100; // 0-10%
+            color = '#9b59b6';
+        }
+
+        // Mise à jour de l'affichage
+        if (humidityStatusElement) {
+            humidityStatusElement.textContent = status;
+            humidityStatusElement.className = `sensor-status ${statusClass}`;
+        }
+        if (humidityGaugeFill) {
+            humidityGaugeFill.style.width = `${fillPercent}%`;
+        }
+        if (humidityElement) {
+            humidityElement.style.color = color;
+        }
+
+        // Animation spéciale pour humidité élevée
+        const statusItem = humidityElement?.closest('.status-item');
+        if (humidity > 70) {
+            statusItem?.classList.add('humidity-high');
+        } else {
+            statusItem?.classList.remove('humidity-high');
         }
     }
 
@@ -383,7 +589,8 @@ class ColdRoomDashboard {
         const labels = {
             'proximity': 'Proximité',
             'temperature': 'Température',
-            'humidity': 'Humidité'
+            'humidity': 'Humidité',
+            'light': 'Luminosité'
         };
         return labels[type] || type;
     }
@@ -431,32 +638,6 @@ class ColdRoomDashboard {
                         }
                     }
                 }
-            });
-        }
-    }
-
-    // Mise à jour périodique des données
-    updateChart(data) {
-        if (!this.chart) return;
-
-        const proximityData = data.filter(item => item.sensor_type === 'proximity').slice(0, 20);
-
-        const labels = proximityData.map(item => this.formatTime(item.timestamp)).reverse();
-        const values = proximityData.map(item => parseFloat(item.value)).reverse();
-
-        this.chart.data.labels = labels;
-        this.chart.data.datasets[0].data = values;
-        this.chart.update();
-    }
-
-    // Chargement de Chart.js si nécessaire
-    async loadChartJS() {
-        if (typeof Chart === 'undefined') {
-            return new Promise((resolve) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js';
-                script.onload = () => resolve();
-                document.head.appendChild(script);
             });
         }
     }

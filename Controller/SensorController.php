@@ -307,5 +307,73 @@ class SensorController {
         echo json_encode($data);
     }
 
+    /**
+     * API : récupérer les dernières valeurs de lumière (capteur lumière, sensorId = 5)
+     * Retourne un JSON des 50 mesures les plus récentes.
+     */
+    public function getLightData() {
+        header('Content-Type: application/json');
+
+        // Connexion à la BDD partagée (Azure)
+        require_once 'Database/SharedDatabase.php';
+        $sharedDb = new SharedDatabase();
+        $conn = $sharedDb->connect();
+        if (!$conn) {
+            http_response_code(500);
+            echo json_encode(['Error' => 'Connexion à la base partagée impossible']);
+            return;
+        }
+
+        // Requête : dernières 50 lignes pour sensorId = 5 (lumière)
+        $sql  = "SELECT timeRecorded AS timestamp, value 
+            FROM sensorData 
+            WHERE sensorId = 5
+            ORDER BY timeRecorded DESC 
+            LIMIT 50";
+        $result = $conn->query($sql);
+
+        // Format JSON
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;      // chaque ligne : {timestamp: "...", value: 1234}
+        }
+        $conn->close();
+        echo json_encode($data);
+    }
+
+    /**
+     * API : récupérer les dernières valeurs d'humidité (capteur humidité, sensorId = 6)
+     * Retourne un JSON des 50 mesures les plus récentes.
+     */
+    public function getHumidityData() {
+        header('Content-Type: application/json');
+
+        // Connexion à la BDD partagée (Azure)
+        require_once 'Database/SharedDatabase.php';
+        $sharedDb = new SharedDatabase();
+        $conn = $sharedDb->connect();
+        if (!$conn) {
+            http_response_code(500);
+            echo json_encode(['Error' => 'Connexion à la base partagée impossible']);
+            return;
+        }
+
+        // Requête : dernières 50 lignes pour sensorId = 6 (humidité)
+        $sql  = "SELECT timeRecorded AS timestamp, value 
+            FROM sensorData 
+            WHERE sensorId = 6
+            ORDER BY timeRecorded DESC 
+            LIMIT 50";
+        $result = $conn->query($sql);
+
+        // Format JSON
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;      // chaque ligne : {timestamp: "...", value: 65.4}
+        }
+        $conn->close();
+        echo json_encode($data);
+    }
+
     
 }

@@ -40,6 +40,16 @@
             <span class="status-label">Proximité</span>
             <span class="status-value" id="proximity-status">45 cm</span>
         </div>
+        <div class="status-item">
+            <i class="fas fa-lightbulb"></i>
+            <span class="status-label">Luminosité</span>
+            <span class="status-value" id="light-status">-- lux</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-tint"></i>
+            <span class="status-label">Humidité</span>
+            <span class="status-value" id="humidity-status">--%</span>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -89,7 +99,62 @@
                 </div>
             </div>
         </div>
-
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-lightbulb"></i> Capteur de Luminosité</h2>
+            </div>
+            <div class="card-content">
+                <div class="sensor-display">
+                    <div class="sensor-value">
+                        <span id="light-value">--</span>
+                        <span class="unit">lux</span>
+                    </div>
+                    <div class="sensor-status" id="light-sensor-status">En attente...</div>
+                </div>
+                <div class="sensor-visual">
+                    <div class="light-gauge">
+                        <div class="gauge-bg-light"></div>
+                        <div class="gauge-fill-light" id="light-gauge-fill"></div>
+                        <div class="gauge-text">Éclairage ambiant</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-tint"></i> Capteur d'Humidité</h2>
+            </div>
+            <div class="card-content">
+                <div class="sensor-display">
+                    <div class="sensor-value">
+                        <span id="humidity-value">--</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="sensor-status" id="humidity-sensor-status">En attente...</div>
+                </div>
+                <div class="sensor-visual">
+                    <div class="humidity-gauge">
+                        <div class="gauge-bg-humidity"></div>
+                        <div class="gauge-fill-humidity" id="humidity-gauge-fill"></div>
+                        <div class="gauge-text">Humidité relative</div>
+                    </div>
+                    <div class="humidity-levels">
+                        <div class="level-indicator">
+                            <span class="level-label">Sec</span>
+                            <span class="level-range">0-30%</span>
+                        </div>
+                        <div class="level-indicator">
+                            <span class="level-label">Normal</span>
+                            <span class="level-range">30-60%</span>
+                        </div>
+                        <div class="level-indicator">
+                            <span class="level-label">Humide</span>
+                            <span class="level-range">60-100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Alerts Panel -->
         <div class="card">
             <div class="card-header">

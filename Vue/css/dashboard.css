@@ -738,3 +738,219 @@ body {
         color:#bdc3c7; 
     }
 }
+/* Styles pour le capteur de lumière - À ajouter dans dashboard.css */
+
+/* Jauge de lumière */
+.light-gauge {
+    position: relative;
+    height: 60px;
+    background: #ecf0f1;
+    border-radius: 30px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.gauge-bg-light {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #2c3e50 0%, #f39c12 30%, #f1c40f 60%, #ffffff 100%);
+}
+
+.gauge-fill-light {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    transition: width 0.5s ease;
+    width: 70%;
+}
+
+/* Statuts spécifiques lumière */
+.sensor-status.dark {
+    background: #2c3e50;
+    color: #ecf0f1;
+}
+
+.sensor-status.dim {
+    background: #f39c12;
+    color: white;
+}
+
+.sensor-status.bright {
+    background: #f1c40f;
+    color: #2c3e50;
+}
+
+.sensor-status.very-bright {
+    background: #ffffff;
+    color: #2c3e50;
+    border: 2px solid #f1c40f;
+}
+
+/* Icône lumière avec animation */
+.status-item i.fa-lightbulb {
+    animation: lightPulse 3s infinite ease-in-out;
+}
+
+@keyframes lightPulse {
+    0%, 100% {
+        color: #f39c12;
+        opacity: 0.8;
+    }
+    50% {
+        color: #f1c40f;
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* État hors ligne pour lumière */
+.sensor-status.light-offline {
+    background: #95a5a6;
+    color: #ffffff;
+}
+
+/* Styles pour le capteur d'humidité - À ajouter dans dashboard.css */
+
+/* Jauge d'humidité */
+.humidity-gauge {
+    position: relative;
+    height: 60px;
+    background: #ecf0f1;
+    border-radius: 30px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.gauge-bg-humidity {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #e67e22 0%, #f39c12 25%, #27ae60 50%, #3498db 75%, #9b59b6 100%);
+}
+
+.gauge-fill-humidity {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    transition: width 0.5s ease;
+    width: 100%;
+}
+
+/* Indicateurs de niveaux d'humidité */
+.humidity-levels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 0.8rem;
+}
+
+.level-indicator {
+    text-align: center;
+    flex: 1;
+}
+
+.level-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.level-range {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.7rem;
+}
+
+/* Statuts spécifiques humidité */
+.sensor-status.very-dry {
+    background: #e67e22;
+    color: white;
+}
+
+.sensor-status.dry {
+    background: #f39c12;
+    color: white;
+}
+
+.sensor-status.optimal {
+    background: #27ae60;
+    color: white;
+}
+
+.sensor-status.humid {
+    background: #3498db;
+    color: white;
+}
+
+.sensor-status.very-humid {
+    background: #9b59b6;
+    color: white;
+}
+
+/* Icône humidité avec animation */
+.status-item i.fa-tint {
+    animation: humidityDrop 4s infinite ease-in-out;
+}
+
+@keyframes humidityDrop {
+    0%, 100% {
+        color: #3498db;
+        transform: translateY(0px);
+    }
+    25% {
+        color: #27ae60;
+        transform: translateY(-2px);
+    }
+    50% {
+        color: #9b59b6;
+        transform: translateY(0px);
+    }
+    75% {
+        color: #3498db;
+        transform: translateY(-1px);
+    }
+}
+
+/* État hors ligne pour humidité */
+.sensor-status.humidity-offline {
+    background: #95a5a6;
+    color: #ffffff;
+}
+
+/* Animation de goutte pour valeurs élevées */
+.humidity-high .fa-tint {
+    animation: dropletFall 2s infinite;
+}
+
+@keyframes dropletFall {
+    0% { transform: translateY(-3px) scale(1); }
+    50% { transform: translateY(0px) scale(1.1); }
+    100% { transform: translateY(-3px) scale(1); }
+}
+
+/* Responsive pour les indicateurs de niveaux */
+@media (max-width: 480px) {
+    .humidity-levels {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .level-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+}
